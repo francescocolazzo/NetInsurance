@@ -1,0 +1,111 @@
+version: "3.8"
+
+networks:
+  insgiov: 
+
+services:
+  psql:
+    image: postgres:12
+    container_name: insgiov_postgresql
+    restart: always
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: insgiov
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5432:5432"
+    networks:
+      - insgiov
+  php:
+    container_name: insgiov_php
+    build:
+      context: .
+      dockerfile: Dockerfile
+      #target: backend-laravel-api
+    networks:
+      - insgiov
+    ports:
+      - "8000:80"
+    volumes:
+      - ./api:/var/www/html
+    depends_on:
+      - psql
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: insgiov_pgAmin
+    ports:
+      - 5050:80
+    depends_on:
+      - psql
+    environment:
+      PGADMIN_DEFAULT_EMAIL: kekkomaister@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: 1234
+    networks:
+      - insgiov
+  npm:
+    container_name: insgiov_npm
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      #target: build-stage
+    ports:
+      - 3000:3000
+    depends_on:
+      - php
+    #user: "1000:1000"
+    volumes:
+      - ./frontend:/frontend/app
+    working_dir: /frontend/app
+    environment:
+      - NODE_ENV=development
+    networks:
+      - insgiov
+    command: "npm run dev"
+
+  # npm:
+  #   container_name: insgiov_npm
+  #   image: node:lts
+  #   volumes:
+  #     - ./frontend:/frontend/app
+  #   working_dir: /frontend/app
+  #   environment:
+  #     - NODE_ENV=development
+  #   networks:
+  #     - insgiov
+  #   ports:
+  #     - 3000:3000
+  #   depends_on:
+  #     - php
+  #   command: "npm run dev"
+
+  # PRIMA CREARE SEMPRE IL PROGETTO GRAZIE All immagine NPM di RIGA 83 CON "NPM INIT VITE"
+  # npm:
+  #   image: node:latest
+  #   container_name: insgiov_npm
+  #   user: "1000:1000"
+  #   volumes:
+  #     -  ./frontend:/frontend/app
+  #   working_dir: /frontend/app
+  #   entrypoint: ['npm']
+  #   networks:
+  #     - insgiov
+
+  # CREARE SEMPRE PRIMA IL PROGETTO GRAZIE A COMPOSER E SCARICARE ULTIMA VERSIONE DI LARAVEL
+  # composer:
+  #   image: composer:latest
+  #   user: "1000:1000"
+  #   container_name: insgiov_composer
+  #   volumes:
+  #     - ./api:/var/www/html
+  #   working_dir: /var/www/html
+  #   depends_on:
+  #     - php
+  #   networks:
+  #     - insgiov
+  
+
+
+
+

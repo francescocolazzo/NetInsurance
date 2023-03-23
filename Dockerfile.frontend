@@ -1,0 +1,14 @@
+# immagine base per Node.js
+FROM node:lts-alpine AS frontend-vue
+
+# Imposta la directory di lavoro all'interno del container
+WORKDIR /app/app
+
+# copia dei file di configurazione
+COPY /frontend/package*.json ./
+
+# installazione delle dipendenze del frontend
+RUN npm install
+
+# copia dei file sorgenti del frontend
+COPY frontend .
